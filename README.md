@@ -1,48 +1,111 @@
 # VectorShift Pipeline Editor
 
-A node-based pipeline editor built with React Flow and FastAPI. Features a config-driven node abstraction where every node type is defined as a plain config object — no custom components needed.
+A polished pipeline builder that lets users compose node-based workflows in a visual canvas, then validate the resulting graph through a FastAPI backend.
 
-## How to Run
+This project was built as a frontend-focused technical assessment, but I treated it like a small product: reusable node architecture, dynamic UI behavior, clean state management, and backend validation that reinforces the editor experience.
 
-### Backend
+## Highlights
 
-```bash
-cd backend
-uvicorn main:app --reload
+- Config-driven node system built on top of React Flow
+- Reusable `BaseNode` that renders every node type from plain config objects
+- Dynamic Text node handles generated from `{{variable}}` tokens in user input
+- Drag-and-drop canvas with animated edges, minimap, controls, and grid snapping
+- FastAPI analysis endpoint that validates whether a submitted pipeline is a DAG
+- Graph analysis utility that computes cycles and topological order
+- Clean modal-based submission feedback in the UI
+
+## Why This Stands Out
+
+Instead of creating one-off React components for every node, the editor uses a registry pattern where each node is described by metadata: fields, handles, icon, color, and behavior. That keeps the system easy to scale, easy to reason about, and much closer to how production workflow builders are usually modeled.
+
+The most interesting product requirement is the Text node. Users can write templates like:
+
+```text
+Hello {{name}}, your score is {{score}}
 ```
 
-The API runs on `http://localhost:8000`.
+The editor parses the variables, creates matching input handles on the left side of the node, and keeps a single output handle on the right. That turns free-form text input into graph structure without making the UI feel complicated.
 
-### Frontend
+## Tech Stack
 
-```bash
-cd frontend
-npm install
-npm start
+- Frontend: React, React Flow, Zustand, Lucide Icons
+- Backend: FastAPI, Pydantic
+- Testing: Pytest
+- Styling: Custom CSS with theme tokens
+
+## Demo Features
+
+### 1. Visual workflow composition
+
+Users can drag nodes from the toolbar onto the canvas, connect them visually, and submit the resulting graph for analysis.
+
+### 2. Extensible node architecture
+
+Current node set includes:
+
+- Input
+- Output
+- LLM
+- Text
+- Filter
+- API
+- Math
+- Switch
+- Delay
+
+Adding a new node does not require a new custom component in the common case. A config object is usually enough.
+
+### 3. Dynamic handles from user text
+
+The Text node supports variable interpolation using double curly braces:
+
+```text
+{{input}}
+{{userName}}
+{{score}}
 ```
 
-The UI opens at `http://localhost:3000`.
+Each valid JavaScript-style variable name becomes a target handle on the left side of the node. Duplicate variables are de-duplicated automatically, and invalid placeholders are ignored for handle creation.
 
-### Tests
+### 4. Graph validation
 
-```bash
-cd backend
-python3 -m pytest test_main.py -v
-```
+On submit, the frontend sends the current nodes and edges to the backend, which:
+
+- counts nodes
+- counts edges
+- reports whether the graph is a DAG
+
+Under the hood, the graph analysis logic also computes cycle information and topological ordering, which makes the backend easy to extend further.
+
+This keeps the project grounded in both frontend interaction design and algorithmic correctness.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
     Toolbar -->|drag/drop| Canvas
-    Canvas -->|uses| BaseNode
+    Canvas -->|renders| ReactFlow
+    ReactFlow -->|uses| BaseNode
     BaseNode -->|reads| Registry
-    Registry -->|contains| NodeConfigs
-    Submit -->|POST| FastAPI
-    FastAPI -->|analyze| DAG
+    Registry -->|defines| NodeConfigs
+    Submit -->|POST /pipelines/parse| FastAPI
+    FastAPI -->|calls| analyze()
 ```
 
-## Adding a New Node
+### Frontend design
+
+- `frontend/src/nodes/registry.js` maps node types to config objects
+- `frontend/src/nodes/BaseNode.js` renders fields and handles generically
+- `frontend/src/canvas/Canvas.js` manages drag/drop, viewport behavior, and React Flow wiring
+- `frontend/src/submit.js` serializes the graph and presents analysis results in a modal
+
+### Backend design
+
+- `backend/main.py` exposes the parsing endpoint and health check
+- `backend/dag.py` performs graph analysis, cycle detection, and topological sorting
+- `backend/models.py` defines request and response contracts with Pydantic
+
+## Example: Adding a New Node
 
 Create a config object in `frontend/src/nodes/` and register it in `registry.js`:
 
@@ -65,12 +128,49 @@ export const myNodeConfig = {
 };
 ```
 
-No component code needed. The `BaseNode` renders it automatically.
+That config is automatically rendered by the shared `BaseNode`, which keeps node creation lightweight and consistent.
 
-## Design Decisions
+## How to Run
 
-- **Node Registry Pattern**: All node types share a single `BaseNode` component. A config object defines fields, handles, icons, and styling. Adding a node = writing 20 lines of JSON-like config.
-- **Dark-first Theme**: CSS custom properties power a dark-by-default theme with a light mode toggle persisted in `localStorage`.
-- **Dynamic Handles**: The Text node's `{{ variable }}` handles and the Switch node's configurable outputs are computed at render time via function-based handle configs.
-- **Kahn's Algorithm**: The DAG check on the backend uses pure Python — no `networkx` dependency. It reports cycle paths and topological order.
-- **Type Safety**: Pydantic v2 models enforce request/response contracts end-to-end.
+### Backend
+
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
+
+The API runs on `http://localhost:8000`.
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm start
+```
+
+The UI runs on `http://localhost:3000`.
+
+## Tests
+
+```bash
+cd backend
+python3 -m pytest test_main.py -v
+```
+
+## What I Optimized For
+
+- Reusability over one-off node components
+- UI behavior that directly reflects user intent
+- Clear separation between editor concerns and graph analysis concerns
+- Extensibility so additional nodes can be added quickly
+- Product polish in addition to functional correctness
+
+## Possible Next Steps
+
+- Persist and restore saved pipelines
+- Add richer type-aware connection validation
+- Add inline warnings for invalid Text node variables
+- Add automated frontend tests for dynamic handle generation
+- Support execution semantics beyond graph validation

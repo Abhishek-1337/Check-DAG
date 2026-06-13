@@ -26,5 +26,3 @@ class PipelineResponse(BaseModel):
     num_nodes: int
     num_edges: int
     is_dag: bool
-    cycles: list[list[str]] = []
-    topological_order: Optional[list[str]] = None

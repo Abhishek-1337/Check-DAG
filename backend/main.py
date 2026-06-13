@@ -21,8 +21,6 @@ def parse_pipeline(req: PipelineRequest) -> PipelineResponse:
         num_nodes=len(req.nodes),
         num_edges=len(req.edges),
         is_dag=result["is_dag"],
-        cycles=result["cycles"],
-        topological_order=result["topological_order"],
     )
 
 

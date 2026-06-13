@@ -4,6 +4,12 @@ A polished pipeline builder that lets users compose node-based workflows in a vi
 
 This project was built as a frontend-focused technical assessment, but I treated it like a small product: reusable node architecture, dynamic UI behavior, clean state management, and backend validation that reinforces the editor experience.
 
+## Screenshots
+
+### Editor canvas
+
+![Pipeline editor canvas](screenshots/ui.png)
+
 ## Highlights
 
 - Config-driven node system built on top of React Flow
@@ -76,6 +82,8 @@ On submit, the frontend sends the current nodes and edges to the backend, which:
 - reports whether the graph is a DAG
 
 Under the hood, the graph analysis logic also computes cycle information and topological ordering, which makes the backend easy to extend further.
+
+![Pipeline analysis modal](screenshots/response_modal.png)
 
 This keeps the project grounded in both frontend interaction design and algorithmic correctness.
 

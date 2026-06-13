@@ -97,7 +97,7 @@ flowchart LR
     BaseNode -->|reads| Registry
     Registry -->|defines| NodeConfigs
     Submit -->|POST /pipelines/parse| FastAPI
-    FastAPI -->|calls| analyze()
+    FastAPI -->|calls| analyze
 ```
 
 ### Frontend design

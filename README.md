@@ -151,8 +151,18 @@ That config is automatically rendered by the shared `BaseNode`, which keeps node
 
 ```bash
 cd backend
+cp .env.example .env
 pip install -r requirements.txt
 uvicorn main:app --reload
+```
+
+Expected `backend/.env` values:
+
+```env
+BACKEND_CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+BACKEND_CORS_ALLOW_CREDENTIALS=true
+BACKEND_CORS_ALLOW_METHODS=*
+BACKEND_CORS_ALLOW_HEADERS=*
 ```
 
 The API runs on `http://localhost:8000`.
@@ -161,8 +171,15 @@ The API runs on `http://localhost:8000`.
 
 ```bash
 cd frontend
+cp .env.example .env
 npm install
 npm start
+```
+
+Expected `frontend/.env` values:
+
+```env
+REACT_APP_API_URL=http://localhost:8000
 ```
 
 The UI runs on `http://localhost:3000`.

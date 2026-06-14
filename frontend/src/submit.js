@@ -4,6 +4,8 @@ import { Button } from './ui/Button';
 import { Modal } from './ui/Modal';
 import { CheckCircle, XCircle } from 'lucide-react';
 
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+
 export function SubmitButton() {
   const nodes = useStore((s) => s.nodes);
   const edges = useStore((s) => s.edges);
@@ -18,7 +20,8 @@ export function SubmitButton() {
       const payload = {
         nodes: nodes.map((n) => ({ id: n.id, type: n.type, position: n.position, data: n.data })),
         edges: edges.map((e) => ({ id: e.id, source: e.source, target: e.target, sourceHandle: e.sourceHandle, targetHandle: e.targetHandle })),
-      };const res = await fetch(`${import.meta.env.VITE_API_URL}/pipelines/parse`, {
+      };
+      const res = await fetch(`${API_BASE_URL}/pipelines/parse`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

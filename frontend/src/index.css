@@ -78,7 +78,6 @@
   width: 280px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-left: 3px solid var(--node-accent, var(--accent));
   border-radius: var(--radius);
   padding: 12px;
   transition: box-shadow 0.15s, border-color 0.15s;

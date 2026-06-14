@@ -1,7 +1,5 @@
 import { Type } from 'lucide-react';
 
-const VAR_REGEX = /\{\{\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\}\}/g;
-
 function validateText(text) {
   if (!text) return { vars: [], invalid: false, invalidMatch: null };
   const vars = [];

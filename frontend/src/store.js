@@ -6,6 +6,12 @@ import {
   MarkerType,
 } from 'reactflow';
 
+function unprefixHandleId(nodeId, handleId) {
+  if (!nodeId || !handleId) return '';
+  const prefix = `${nodeId}-`;
+  return handleId.startsWith(prefix) ? handleId.slice(prefix.length) : handleId;
+}
+
 export const useStore = create((set, get) => ({
   nodes: [],
   edges: [],
@@ -28,7 +34,33 @@ export const useStore = create((set, get) => ({
   onEdgesChange: (changes) => {
     set({ edges: applyEdgeChanges(changes, get().edges) });
   },
+  isValidConnection: (connection) => {
+    const { source, target, sourceHandle, targetHandle } = connection || {};
+    if (!source || !target) return false;
+
+    const nodes = get().nodes;
+    const sourceNode = nodes.find((n) => n.id === source);
+    const targetNode = nodes.find((n) => n.id === target);
+    if (!sourceNode || !targetNode) return false;
+
+    // Text variable handles only accept Input nodes with matching inputName.
+    if (targetNode.type === 'text') {
+      if (sourceNode.type !== 'customInput') return false;
+      const sourcePort = unprefixHandleId(source, sourceHandle);
+      const targetVar = unprefixHandleId(target, targetHandle);
+      const inputName = String(sourceNode.data?.inputName || '').trim();
+
+      if (sourcePort !== 'value') return false;
+      if (!inputName) return false;
+      return inputName === targetVar;
+    }
+
+    return true;
+  },
   onConnect: (connection) => {
+    if (!get().isValidConnection(connection)) {
+      return;
+    }
     set({
       edges: addEdge({
         ...connection,

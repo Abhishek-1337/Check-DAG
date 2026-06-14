@@ -1,5 +1,5 @@
-import { useCallback, useMemo } from 'react';
-import { Handle, Position } from 'reactflow';
+import { useCallback, useEffect, useMemo } from 'react';
+import { Handle, Position, useUpdateNodeInternals } from 'reactflow';
 import { useStore } from '../store';
 import { registry } from './registry';
 import { TextInput } from '../ui/TextInput';
@@ -18,9 +18,28 @@ function toHandlePosition(pos) {
   return map[pos] ?? Position.Left;
 }
 
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function textNodeSize(text, targetHandleCount) {
+  const safeText = String(text || '');
+  const lines = safeText.length ? safeText.split('\n') : [''];
+  const longestLine = lines.reduce((max, line) => Math.max(max, line.length), 0);
+
+  const width = clamp(260 + longestLine * 6, 280, 620);
+  const wrappedLineEstimate = Math.ceil(Math.max(0, safeText.length - 1) / 70);
+  const contentHeight = 120 + lines.length * 20 + wrappedLineEstimate * 14;
+  const handlesHeight = 84 + targetHandleCount * 24;
+  const height = clamp(Math.max(contentHeight, handlesHeight), 140, 560);
+
+  return { width, minHeight: height };
+}
+
 export function BaseNode({ id, data, type, selected, style: sizeStyle }) {
   const config = registry[type];
   const updateNodeData = useStore((s) => s.updateNodeData);
+  const updateNodeInternals = useUpdateNodeInternals();
 
   const handleChange = useCallback((fieldName, value) => {
     updateNodeData(id, { [fieldName]: value });
@@ -38,6 +57,19 @@ export function BaseNode({ id, data, type, selected, style: sizeStyle }) {
     }));
   }, [config, data, id]);
 
+  const dynamicStyle = useMemo(() => {
+    if (type !== 'text') return undefined;
+    const text = data?.text ?? '';
+    const targetCount = handles.filter((h) => h.type === 'target').length;
+    return textNodeSize(text, targetCount);
+  }, [type, data?.text, handles]);
+
+  const sizeKey = `${dynamicStyle?.width ?? ''}:${dynamicStyle?.minHeight ?? ''}`;
+
+  useEffect(() => {
+    updateNodeInternals(id);
+  }, [handles, id, sizeKey, updateNodeInternals]);
+
   if (!config) {
     return <div className="node" style={{ width: 200, height: 80 }}>Unknown: {type}</div>;
   }
@@ -49,6 +81,7 @@ export function BaseNode({ id, data, type, selected, style: sizeStyle }) {
       className={`node${selected ? ' node--selected' : ''}`}
       style={{
         '--node-accent': config.accentColor,
+        ...dynamicStyle,
         ...sizeStyle,
       }}
     >

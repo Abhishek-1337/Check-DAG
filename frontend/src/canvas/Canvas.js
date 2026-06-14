@@ -20,6 +20,7 @@ export function Canvas() {
   const onNodesChange = useStore((s) => s.onNodesChange);
   const onEdgesChange = useStore((s) => s.onEdgesChange);
   const onConnect = useStore((s) => s.onConnect);
+  const isValidConnection = useStore((s) => s.isValidConnection);
 
   const onDrop = useCallback((event) => {
     event.preventDefault();
@@ -64,6 +65,7 @@ export function Canvas() {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
+        isValidConnection={isValidConnection}
         onDrop={onDrop}
         onDragOver={onDragOver}
         onInit={setReactFlowInstance}

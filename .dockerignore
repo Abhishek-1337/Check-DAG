@@ -1,0 +1,11 @@
+.venv
+node_modules
+.git
+.gitignore
+*.md
+screenshots
+VectorShift - Frontend Technical Assessment Instructions.pdf
+README.md
+SOLUTION.md
+IMPLEMENTED.md
+SCREEN_RECORDING_SCRIPT.md

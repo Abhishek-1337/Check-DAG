@@ -15,6 +15,8 @@ This project was built as a frontend-focused technical assessment, but I treated
 - Config-driven node system built on top of React Flow
 - Reusable `BaseNode` that renders every node type from plain config objects
 - Dynamic Text node handles generated from `{{variable}}` tokens in user input
+- Strict Input -> Text variable-handle matching (Input name must match `{{variable}}`)
+- Text node auto-resizes as content grows for better authoring visibility
 - Drag-and-drop canvas with animated edges, minimap, controls, and grid snapping
 - FastAPI analysis endpoint that validates whether a submitted pipeline is a DAG
 - Graph analysis utility that computes cycles and topological order
@@ -73,6 +75,10 @@ The Text node supports variable interpolation using double curly braces:
 
 Each valid JavaScript-style variable name becomes a target handle on the left side of the node. Duplicate variables are de-duplicated automatically, and invalid placeholders are ignored for handle creation.
 
+Connection behavior is strict for Text variable binding: an Input node can connect to a Text variable handle only when the Input node's `Name` exactly matches the variable handle name.
+
+The Text node also grows in width and height as users type more content, which improves readability for long templates and multi-line text.
+
 ### 4. Graph validation
 
 On submit, the frontend sends the current nodes and edges to the backend, which:
@@ -105,6 +111,7 @@ flowchart LR
 - `frontend/src/nodes/registry.js` maps node types to config objects
 - `frontend/src/nodes/BaseNode.js` renders fields and handles generically
 - `frontend/src/canvas/Canvas.js` manages drag/drop, viewport behavior, and React Flow wiring
+- `frontend/src/store.js` applies connection validation rules (including strict Text variable matching)
 - `frontend/src/submit.js` serializes the graph and presents analysis results in a modal
 
 ### Backend design
@@ -178,7 +185,6 @@ python3 -m pytest test_main.py -v
 ## Possible Next Steps
 
 - Persist and restore saved pipelines
-- Add richer type-aware connection validation
 - Add inline warnings for invalid Text node variables
 - Add automated frontend tests for dynamic handle generation
 - Support execution semantics beyond graph validation

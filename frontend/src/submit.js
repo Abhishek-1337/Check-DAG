@@ -18,12 +18,12 @@ export function SubmitButton() {
       const payload = {
         nodes: nodes.map((n) => ({ id: n.id, type: n.type, position: n.position, data: n.data })),
         edges: edges.map((e) => ({ id: e.id, source: e.source, target: e.target, sourceHandle: e.sourceHandle, targetHandle: e.targetHandle })),
-      };
-      const res = await fetch('http://localhost:8000/pipelines/parse', {
+      };const res = await fetch(`${import.meta.env.VITE_API_URL}/pipelines/parse`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
+      
       if (!res.ok) throw new Error(`Backend error: ${res.status}`);
       const data = await res.json();
       setResult(data);

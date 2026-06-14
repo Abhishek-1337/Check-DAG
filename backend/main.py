@@ -1,16 +1,29 @@
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
 from models import PipelineRequest, PipelineResponse
 from dag import analyze
+
+load_dotenv()
+
+
+def parse_cors_origins() -> list[str]:
+    raw = os.getenv("BACKEND_CORS_ORIGINS", "")
+    origins = [origin.strip() for origin in raw.split(",") if origin.strip()]
+    if origins:
+        return origins
+    return ["http://localhost:3000", "http://127.0.0.1:3000"]
 
 app = FastAPI(title="VectorShift Pipeline Parser")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=parse_cors_origins(),
+    allow_credentials=os.getenv("BACKEND_CORS_ALLOW_CREDENTIALS", "true").lower() == "true",
+    allow_methods=[m.strip() for m in os.getenv("BACKEND_CORS_ALLOW_METHODS", "*").split(",") if m.strip()],
+    allow_headers=[h.strip() for h in os.getenv("BACKEND_CORS_ALLOW_HEADERS", "*").split(",") if h.strip()],
 )
 
 
